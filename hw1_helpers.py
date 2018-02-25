@@ -34,7 +34,7 @@ def get_label(filepath, label2id):
 
 # Functions to load data, DO NOT change these
 
-def get_labels(folder, label2id, limit=None):
+def get_labels(folder, label2id):
     """
     Returns vector of labels extracted from filenames of all files in folder
     :param folder: path to data folder
@@ -42,12 +42,8 @@ def get_labels(folder, label2id, limit=None):
     """
     files = get_files(folder)
     y = []
-    count = 0
     for f in files:
         y.append(get_label(f,label2id))
-        count += 1
-        if count == limit:
-            break
     return np.array(y)
 
 def one_hot(y, num_classes=10):
@@ -73,7 +69,7 @@ def get_label_mapping(label_file):
         count += 1
     return id2label, label2id
 
-def get_images(folder, limit):
+def get_images(folder):
     """
     returns numpy array of all samples in folder
     each column is a sample resized to 30x30 and flattened
@@ -89,22 +85,20 @@ def get_images(folder, limit):
         img_arr = img_arr.flatten() / 255.0
         images.append(img_arr)
         count += 1
-        if limit != None and count == limit:
-            break
 
     X = np.column_stack(images)
 
     return X
 
-def get_train_data(data_root_path, limit=None):
+def get_train_data(data_root_path):
     """
     Return X and y
     """
     train_data_path = data_root_path + 'train'
     id2label, label2id = get_label_mapping(data_root_path+'labels.txt')
     print(label2id)
-    X = get_images(train_data_path, limit=limit)
-    y = get_labels(train_data_path, label2id, limit=limit)
+    X = get_images(train_data_path)
+    y = get_labels(train_data_path, label2id)
     return X, y
 
 def save_predictions(filename, y):
