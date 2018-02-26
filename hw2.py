@@ -15,7 +15,7 @@ NUM_EXAMPLES = 50000
 NUM_EVAL_EXAMPLES = 10000
 NUM_TRAIN_EXAMPLES = NUM_EXAMPLES - NUM_EVAL_EXAMPLES
 
-X_test = get_images(data_root_path + 'test')
+X_test = get_images(data_root_path + 'test', True)
 X_test = X_test.T
 X_test = tf.cast(X_test, tf.float32)
 X_test = tf.reshape(X_test, [10000, 32, 32, 3])
@@ -122,10 +122,10 @@ for i in range(50000):
 		# Print out some real evals
 		pred = sess.run((predictions), feed_dict={final_mode: True, train_mode: False})
 		df = DataFrame(data=pred)
-		df.index.name = 'ID'
-		df.colums.values[0] = 'CLASS'
 		filename = './pred-' + datetime.now().strftime('%d-%H:%M:%S' + '.txt')
 		df.to_csv(filename, mode='a', index=True, sep=',')
+
+		# Manually add header before kaggle submission
 		print("...saved to " + filename)
 
 print("Done training")

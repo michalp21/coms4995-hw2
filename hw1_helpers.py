@@ -69,12 +69,14 @@ def get_label_mapping(label_file):
         count += 1
     return id2label, label2id
 
-def get_images(folder):
+def get_images(folder, test=False):
     """
     returns numpy array of all samples in folder
     each column is a sample resized to 30x30 and flattened
     """
-    files = get_files(folder)
+    files = get_files(folder) if not test else [
+        folder + "/" + str(i) + ".png" for i in range(10000)]
+
     images = []
     count = 0
 
