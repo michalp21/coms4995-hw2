@@ -78,8 +78,16 @@ net = tf.layers.conv2d(
     activation=tf.nn.relu)
 net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
 
+net = tf.layers.conv2d(
+	inputs=net,
+	filters=64,
+	kernel_size=[5, 5],
+	padding="same",
+	activation=tf.nn.relu)
+net =tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
+
 # Dense (fully connected) Layer
-net = tf.reshape(net, [-1, 8 * 8 * 64])
+net = tf.reshape(net, [-1, 4 * 4 * 64])
 net = tf.layers.dense(inputs=net, units=1024, activation=tf.nn.relu)
 
 # Dropout layer -- do not dropout for eval
