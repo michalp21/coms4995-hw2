@@ -118,7 +118,7 @@ sess = tf.Session()
 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 tf.train.start_queue_runners(sess)
 
-for i in range(50000):
+for i in range(500000):
 	_, loss_value = sess.run([train_op, loss], feed_dict={final_mode: False, train_mode: True})
 	print("%d train: %.4f" % (i, loss_value))
 
