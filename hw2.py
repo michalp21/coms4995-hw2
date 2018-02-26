@@ -3,6 +3,8 @@ import numpy as np
 
 from datetime import datetime
 
+from pandas import DataFrame
+
 from hw1_helpers import *
 
 data_root_path = '/home/daniel/cifar10-hw2/'
@@ -118,9 +120,12 @@ for i in range(50000):
 
 	if i % 1000 == 0:
 		# Print out some real evals
-		predictions = sess.run((predictions), feed_dict={final_mode: True, train_mode: False})
-		# I think it's a numpy array, easy enough to work with
-		out = "predictions-" + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
+		pred = sess.run((predictions), feed_dict={final_mode: True, train_mode: False})
+		df = DataFrame(data=pred)
+		df.index.name = 'ID'
+		df.colums.values[0] = 'CLASS'
+		filename = './pred-' + datetime.now().strftime('%d-%H:%M:%S' + '.txt')
+		df.to_csv(filename, mode='a', index=True, sep=',')
+		print("...saved to " + filename)
 
 print("Done training")
