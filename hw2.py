@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 
+from datetime import datetime
+
 from hw1_helpers import *
 
 data_root_path = '/home/daniel/cifar10-hw2/'
@@ -13,6 +15,8 @@ NUM_TRAIN_EXAMPLES = NUM_EXAMPLES - NUM_EVAL_EXAMPLES
 
 X_test = get_images(data_root_path + 'test')
 X_test = X_test.T
+X_test = tf.cast(X_test, tf.float32)
+X_test = tf.reshape(X_test, [10000, 32, 32, 3])
 
 # Get all the data and shape it for TF
 
@@ -28,7 +32,8 @@ print('Data loading hw1 done: %s')
 # Train means update the graph and use dropout
 # Eval means no dropout
 
-train_mode = tf.placeholder(dtype=tf.bool, name='train_mode_dje')
+train_mode = tf.placeholder(dtype=tf.bool)
+final_mode = tf.placeholder(dtype=tf.bool)
 
 # Set up tensors to fetch the batch for training or eval. Which set of tensors
 # is activated will depend on train_mode.
@@ -47,6 +52,7 @@ y_eval = tf.gather(y_all, batch_eval)
 # Evaluate whether it's train or eval mode and decide on the inputs/labels.
 
 inputs = tf.cond(train_mode, true_fn=lambda: X_batch, false_fn=lambda: X_eval)
+inputs = tf.cond(final_mode, true_fn=lambda: X_test, false_fn=lambda: inputs)
 labels = tf.cond(train_mode, true_fn=lambda: y_batch, false_fn=lambda: y_eval)
 onehot = tf.one_hot(indices=labels, depth=10)
 
@@ -70,7 +76,7 @@ net = tf.layers.conv2d(
     activation=tf.nn.relu)
 net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
 
-# Dense (fully conected) Layer
+# Dense (fully connected) Layer
 net = tf.reshape(net, [-1, 8 * 8 * 64])
 net = tf.layers.dense(inputs=net, units=1024, activation=tf.nn.relu)
 
@@ -103,11 +109,18 @@ sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 tf.train.start_queue_runners(sess)
 
 for i in range(50000):
-	_, loss_value = sess.run([train_op, loss], feed_dict={train_mode: True})
-	print("train: %.4f" % loss_value)
+	_, loss_value = sess.run([train_op, loss], feed_dict={final_mode: False, train_mode: True})
+	print("%d train: %.4f" % (i, loss_value))
 
 	if i % 50 == 0:
-		accu = sess.run((accuracy), feed_dict={train_mode: False})
+		accu = sess.run((accuracy), feed_dict={final_mode: False, train_mode: False})
 		print("Accuracy: %.1f%%" % (100.0 * accu))
+
+	if i % 1000 == 0:
+		# Print out some real evals
+		predictions = sess.run((predictions), feed_dict={final_mode: True, train_mode: False})
+		# I think it's a numpy array, easy enough to work with
+		out = "predictions-" + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 
 print("Done training")
