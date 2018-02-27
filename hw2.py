@@ -88,8 +88,22 @@ net = tf.nn.lrn(net, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
 
 net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
 
+# Convolutional + Pooling Layers 3
+net = tf.layers.conv2d(
+    inputs=net,
+    filters=64,
+    kernel_size=[5, 5],
+    padding="same",
+    activation=tf.nn.relu)
+
+net = tf.nn.lrn(net, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
+
+net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
+
+
+
 # Dense (fully connected) Layer
-net = tf.reshape(net, [-1, 8 * 8 * 64])
+net = tf.reshape(net, [-1, 4 * 4 * 64])
 net = tf.layers.dense(inputs=net, units=1024, activation=tf.nn.relu)
 net = tf.layers.dropout(
     inputs=net, rate=0.4, training=train_mode)
