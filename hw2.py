@@ -76,7 +76,7 @@ net = tf.layers.conv2d(
     activation=tf.nn.relu)
 net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
 
-net = tf.nn.lrn(net, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
+net = tf.nn.lrn(net, 2, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
 
 # Convolutional + Pooling Layers 2
 net = tf.layers.conv2d(
@@ -86,7 +86,7 @@ net = tf.layers.conv2d(
     padding="same",
     activation=tf.nn.relu)
 
-net = tf.nn.lrn(net, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
+net = tf.nn.lrn(net, 2, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
 
 net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
 
@@ -98,7 +98,7 @@ net = tf.layers.conv2d(
     padding="same",
     activation=tf.nn.relu)
 
-net = tf.nn.lrn(net, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
+net = tf.nn.lrn(net, 2, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
 
 net = tf.layers.max_pooling2d(inputs=net, pool_size=[2, 2], strides=2)
 
@@ -138,9 +138,9 @@ sess = tf.Session()
 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 tf.train.start_queue_runners(sess)
 
-best_accu_p = 0.0
+best_accu_p = 70.0
 
-for i in range(10000):
+for i in range(5000):
 	_, loss_value = sess.run([train_op, loss], feed_dict={final_mode: False,
 		train_mode: True})
 	print("%d train: %.1f" % (i, loss_value))
