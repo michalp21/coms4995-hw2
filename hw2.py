@@ -138,7 +138,7 @@ tf.train.start_queue_runners(sess)
 
 best_accu_p = 0.0
 
-for i in range(5000):
+for i in range(10000):
 	_, loss_value = sess.run([train_op, loss], feed_dict={final_mode: False,
 		train_mode: True})
 	print("%d train: %.1f" % (i, loss_value))
