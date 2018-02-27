@@ -15,6 +15,7 @@ NUM_EVAL_EXAMPLES = 512
 NUM_TRAIN_EXAMPLES = NUM_EXAMPLES - NUM_EVAL_EXAMPLES
 
 X_test = get_images(data_root_path + 'test', True)
+
 X_test = X_test.T
 X_test = tf.cast(X_test, tf.float32)
 X_test = tf.reshape(X_test, [10000, 32, 32, 3])
@@ -27,18 +28,11 @@ perm = np.random.permutation(NUM_EXAMPLES)
 X_all = X_all[:, perm]
 y_all = y_all[perm]
 
-X_eval = X_all[:, 0:NUM_EVAL_EXAMPLES]
-y_eval = y_all[0:NUM_EVAL_EXAMPLES]
-
 X_all = X_all.T
 X_all = tf.cast(X_all, tf.float32)
 X_all = tf.reshape(X_all, [NUM_EXAMPLES, 32, 32, 3])
 
-X_eval = X_eval.T
-X_eval = tf.cast(X_eval, tf.float32)
-X_eval = tf.reshape(X_eval, [NUM_EVAL_EXAMPLES, 32, 32, 3])
-
-print('Data loading hw1 done: %s')
+print('Data loading hw1 done')
 
 # Placeholder boolean tensor so we know whether we are training or eval/predicting
 # Train means update the graph and use dropout
@@ -52,12 +46,15 @@ final_mode = tf.placeholder(dtype=tf.bool)
 
 batch_train = tf.random_uniform([BATCH_SIZE], minval=NUM_EVAL_EXAMPLES,
 	maxval=NUM_EXAMPLES, dtype=tf.int32)
-
 X_batch_train = tf.gather(X_all, batch_train)
 y_batch_train = tf.gather(y_all, batch_train)
 
-X_batch_train = tf.map_fn(
-	lambda img: tf.image.random_flip_left_right(img), X_batch_train)
+batch_eval = tf.range(NUM_EVAL_EXAMPLES)
+X_eval = tf.gather(X_all, batch_eval)
+y_eval = tf.gather(y_all, batch_eval)
+
+# X_batch_train = tf.map_fn(
+# 	lambda img: tf.image.random_flip_left_right(img), X_batch_train)
 
 # Evaluate whether it's train or eval mode and decide on the inputs/labels.
 
@@ -65,8 +62,6 @@ inputs = tf.cond(train_mode, true_fn=lambda: X_batch_train, false_fn=lambda: X_e
 inputs = tf.cond(final_mode, true_fn=lambda: X_test, false_fn=lambda: inputs)
 labels = tf.cond(train_mode, true_fn=lambda: y_batch_train, false_fn=lambda: y_eval)
 onehot = tf.one_hot(indices=labels, depth=10)
-
-inputs = tf.map_fn(lambda img: tf.image.per_image_standardization(img), inputs)
 
 ### Build the actual network structure ###
 
@@ -127,15 +122,16 @@ sess = tf.Session()
 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 tf.train.start_queue_runners(sess)
 
-best_accu_p = 68.0
+best_accu_p = 0.0
 
-for i in range(500000):
+for i in range(5000):
 	_, loss_value = sess.run([train_op, loss], feed_dict={final_mode: False,
 		train_mode: True})
 	print("%d train: %.1f" % (i, loss_value))
 
 	# these numbers are just ballparks for how to make training convenient
-	if i % 100 == 0 or i > 1000 and i % 60 == 0 or i > 4000 and i % 40 == 0:
+	if i > 0 and (
+		i % 100 == 0 or i > 1000 and i % 50 == 0 or i > 4000 and i % 25 == 0):
 		accu_p = 100 * sess.run((accuracy),
 			feed_dict={final_mode: False, train_mode: False})
 		print("[%s] Accuracy: %.1f%%" % (str(datetime.now()), accu_p))
@@ -148,18 +144,8 @@ for i in range(500000):
 			pred = sess.run((predictions), feed_dict={final_mode: True,
 				train_mode: False})
 			df = DataFrame(data=pred)
+			df.index.name = 'ID'
+			df.columns = ['CLASS']
 			df.to_csv(filename, mode='a', index=True, sep=',')
 
-
-	if i > 0 and i % 10000 == 0:
-		# Print out some real evals
-		filename = 'pred-%d.txt' % (i,)
-		pred = sess.run((predictions), feed_dict={final_mode: True,
-			train_mode: False})
-		df = DataFrame(data=pred)
-		df.to_csv(filename, mode='a', index=True, sep=',')
-
-		# Manually add header before kaggle submission
-		print("...saved every 10000th to " + filename)
-
-print("Done training")
+print("Done training, submit: " + filename)
