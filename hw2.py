@@ -53,15 +53,20 @@ final_mode = tf.placeholder(dtype=tf.bool)
 batch_train = tf.random_uniform([BATCH_SIZE], minval=NUM_EVAL_EXAMPLES,
 	maxval=NUM_EXAMPLES, dtype=tf.int32)
 
-X_batch = tf.gather(X_all, batch_train)
-y_batch = tf.gather(y_all, batch_train)
+X_batch_train = tf.gather(X_all, batch_train)
+y_batch_train = tf.gather(y_all, batch_train)
+
+X_batch_train = tf.map_fn(
+	lambda img: tf.image.random_flip_left_right(img), X_batch_train)
 
 # Evaluate whether it's train or eval mode and decide on the inputs/labels.
 
-inputs = tf.cond(train_mode, true_fn=lambda: X_batch, false_fn=lambda: X_eval)
+inputs = tf.cond(train_mode, true_fn=lambda: X_batch_train, false_fn=lambda: X_eval)
 inputs = tf.cond(final_mode, true_fn=lambda: X_test, false_fn=lambda: inputs)
-labels = tf.cond(train_mode, true_fn=lambda: y_batch, false_fn=lambda: y_eval)
+labels = tf.cond(train_mode, true_fn=lambda: y_batch_train, false_fn=lambda: y_eval)
 onehot = tf.one_hot(indices=labels, depth=10)
+
+inputs = tf.map_fn(lambda img: tf.image.per_image_standardization(img), inputs)
 
 ### Build the actual network structure ###
 
@@ -116,26 +121,26 @@ accuracy = tf.reduce_mean(diff)
 
 # Running
 
-print("Try training")
+print("Try training: left right flip and per image std")
 
 sess = tf.Session()
 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 tf.train.start_queue_runners(sess)
 
-best_accu_p = 60.0
+best_accu_p = 68.0
 
 for i in range(500000):
 	_, loss_value = sess.run([train_op, loss], feed_dict={final_mode: False,
 		train_mode: True})
-	print("%d train: %.2f" % (i, loss_value))
+	print("%d train: %.1f" % (i, loss_value))
 
 	# these numbers are just ballparks for how to make training convenient
-	if i % 100 == 0 or i > 8000 and i % 40 == 0:
+	if i % 100 == 0 or i > 1000 and i % 60 == 0 or i > 4000 and i % 40 == 0:
 		accu_p = 100 * sess.run((accuracy),
 			feed_dict={final_mode: False, train_mode: False})
 		print("[%s] Accuracy: %.1f%%" % (str(datetime.now()), accu_p))
 		if accu_p > best_accu_p:
-			filename = './accu-' + ('%.2f' % (accu_p,)) + '.txt'
+			filename = './accu-' + str(i) + '-' + ('%.2f' % (accu_p,)) + '.txt'
 			print("New best accuracy %.2f%% (old %.2f%%), saving to %s"
 				%  (accu_p, best_accu_p, filename))
 			best_accu_p = accu_p
