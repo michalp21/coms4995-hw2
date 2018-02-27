@@ -116,7 +116,7 @@ accuracy = tf.reduce_mean(diff)
 
 # Running
 
-print("Try training: left right flip and per image std")
+print("Try training")
 
 sess = tf.Session()
 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
