@@ -161,7 +161,7 @@ sess = tf.Session()
 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 tf.train.start_queue_runners(sess)
 
-best_accu_p = 0.0
+best_accu_p = 70.0
 
 
 merged = tf.summary.merge_all()
