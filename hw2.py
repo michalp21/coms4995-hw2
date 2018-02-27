@@ -63,6 +63,8 @@ inputs = tf.cond(final_mode, true_fn=lambda: X_test, false_fn=lambda: inputs)
 labels = tf.cond(train_mode, true_fn=lambda: y_batch_train, false_fn=lambda: y_eval)
 onehot = tf.one_hot(indices=labels, depth=10)
 
+inputs = tf.map_fn(lambda img: tf.image.per_image_standardization(img), inputs)
+
 ### Build the actual network structure ###
 
 # Convolutional + Pooling Layers #1
